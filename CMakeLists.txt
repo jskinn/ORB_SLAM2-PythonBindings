@@ -30,9 +30,9 @@ else()
 endif()
 
 #Set the ORBSLAM directory path
-set(ORBSLAM2_BASE_DIR "/home/john/Software/ORB_SLAM2")
-set(ORBSLAM2_INCLUDE_DIR "${ORBSLAM2_BASE_DIR}/include")
-set(ORBSLAM2_LIB "${ORBSLAM2_BASE_DIR}/lib/libORB_SLAM2.so")
+#TODO: Convert this to a proper FindORB_SLAM2.cmake
+set(ORBSLAM2_INCLUDE_DIR "/usr/local/include")
+set(ORBSLAM2_LIB "/usr/local/lib/libORB_SLAM2.so")
 
 # I'm using a custom boost library, because the default one uses python 2 -_-
 set(BOOST_ROOT "/home/john/Software/Boost/boost/")
@@ -44,6 +44,9 @@ find_package(Boost 1.45.0 REQUIRED COMPONENTS python)
 find_package(OpenCV 2.4.3 REQUIRED)
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
+
+# RPATH fiddling for the library, so that we can find our alternate boost
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/src
