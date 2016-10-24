@@ -12,8 +12,10 @@ public:
     ORBSlamPython(std::string vocabFile, std::string settingsFile);
     ~ORBSlamPython();
     
-    void initialize();
-    void loadAndProcessImage(std::string imageFile, double timestamp);
+    bool initialize();
+    bool isRunning();
+    bool loadAndProcessImage(std::string imageFile, double timestamp);
+    void reset();
     void shutdown();
     boost::python::list getTrajectoryPoints() const;
     

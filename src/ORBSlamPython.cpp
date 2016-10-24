@@ -7,9 +7,11 @@ BOOST_PYTHON_MODULE(orbslam2)
 {
     boost::python::class_<ORBSlamPython, boost::noncopyable>("system", boost::python::init<std::string, std::string>())
         .def("initialize", &ORBSlamPython::initialize)
-        .def("loadAndProcessImage", &ORBSlamPython::loadAndProcessImage)
+        .def("load_and_process_image", &ORBSlamPython::loadAndProcessImage)
         .def("shutdown", &ORBSlamPython::shutdown)
-        .def("getTrajectoryPoints", &ORBSlamPython::getTrajectoryPoints);
+        .def("is_running", &ORBSlamPython::isRunning)
+        .def("reset", &ORBSlamPython::reset)
+        .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints);
 }
 
 ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
@@ -24,15 +26,33 @@ ORBSlamPython::~ORBSlamPython()
 {
 }
 
-void ORBSlamPython::initialize()
+bool ORBSlamPython::initialize()
 {
-    system->StartUp(vocabluaryFile, settingsFile, false);
+    return system->StartUp(vocabluaryFile, settingsFile, false);
 }
 
-void ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
+bool ORBSlamPython::isRunning()
+{
+    return system && system->IsRunning();
+}
+
+void ORBSlamPython::reset()
+{
+    if (system)
+    {
+        system->Reset();
+    }
+}
+
+bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
 {
     cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
-    system->TrackMonocular(im, timestamp);
+    if (im.data) {
+        cv::Mat pose = system->TrackMonocular(im, timestamp);
+        return pose.empty();
+    } else {
+        return false;
+    }
 }
 
 void ORBSlamPython::shutdown()
