@@ -35,7 +35,7 @@ set(ORBSLAM2_INCLUDE_DIR "/usr/local/include")
 set(ORBSLAM2_LIB "/usr/local/lib/libORB_SLAM2.so")
 
 # I'm using a custom boost library, because the default one uses python 2 -_-
-set(BOOST_ROOT "/home/john/Software/Boost/boost/")
+set(BOOST_ROOT "/opt/boost_1_62_0_python3/")
 set(Python_ADDITIONAL_VERSIONS 3.4)
 
 find_package(PythonLibs 3.4 REQUIRED)
