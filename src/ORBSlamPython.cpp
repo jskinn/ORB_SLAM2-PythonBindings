@@ -5,7 +5,7 @@
 
 BOOST_PYTHON_MODULE(orbslam2)
 {
-    boost::python::class_<ORBSlamPython, boost::noncopyable>("system", boost::python::init<std::string, std::string>())
+    boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<std::string, std::string>())
         .def("initialize", &ORBSlamPython::initialize)
         .def("load_and_process_image", &ORBSlamPython::loadAndProcessImage)
         .def("shutdown", &ORBSlamPython::shutdown)
