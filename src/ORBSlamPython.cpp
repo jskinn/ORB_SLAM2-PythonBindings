@@ -12,7 +12,12 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
-        .def("save_settings", &ORBSlamPython::saveSettings);
+        .def("save_settings", &ORBSlamPython::saveSettings)
+        .def("load_settings", &ORBSlamPython::loadSettings)
+        .def("save_settings_file", &ORBSlamPython::saveSettingsFile)
+        .staticmethod("save_settings_file")
+        .def("load_settings_file", &ORBSlamPython::loadSettingsFile)
+        .staticmethod("load_settings_file");
 }
 
 ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
@@ -97,9 +102,19 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     return trajectory;
 }
 
-bool ORBSlamPython::saveSettings(boost::python::dict settings)
+bool ORBSlamPython::saveSettings(boost::python::dict settings) const
 {
-    cv::FileStorage fs(settingsFile.c_str(), cv::FileStorage::WRITE);
+    return ORBSlamPython::saveSettingsFile(settings, settingsFile);
+}
+
+boost::python::dict ORBSlamPython::loadSettings() const
+{
+    return ORBSlamPython::loadSettingsFile(settingsFile);
+}
+
+bool ORBSlamPython::saveSettingsFile(boost::python::dict settings, std::string settingsFilename)
+{
+    cv::FileStorage fs(settingsFilename.c_str(), cv::FileStorage::WRITE);
     
     boost::python::list keys = settings.keys();
     for (int index = 0; index < boost::python::len(keys); ++index)
@@ -136,3 +151,89 @@ bool ORBSlamPython::saveSettings(boost::python::dict settings)
     return true;
 }
 
+// Helpers for reading cv::FileNode objects into python objects.
+boost::python::list readSequence(cv::FileNode fn, int depth=10);
+boost::python::dict readMap(cv::FileNode fn, int depth=10);
+
+boost::python::dict ORBSlamPython::loadSettingsFile(std::string settingsFilename)
+{
+    cv::FileStorage fs(settingsFilename.c_str(), cv::FileStorage::READ);
+    return readMap(fs.getFirstTopLevelNode());
+}
+
+
+// ----------- HELPER DEFINITIONS -----------
+boost::python::dict readMap(cv::FileNode fn, int depth)
+{
+    boost::python::dict map;
+    if (fn.isMap()) {
+        cv::FileNodeIterator it = fn.begin(), itEnd = fn.end();
+        for (; it != itEnd; ++it) {
+            cv::FileNode item = *it;
+            std::string key = item.name();
+            
+            if (item.isNone())
+            {
+                map[key] = boost::python::object();
+            }
+            else if (item.isInt())
+            {
+                map[key] = int(item);
+            }
+            else if (item.isString())
+            {
+                map[key] = std::string(item);
+            }
+            else if (item.isReal())
+            {
+                map[key] = float(item);
+            }
+            else if (item.isSeq() && depth > 0)
+            {
+                map[key] = readSequence(item, depth-1);
+            }
+            else if (item.isMap() && depth > 0)
+            {
+                map[key] = readMap(item, depth-1);  // Depth-limited recursive call to read inner maps
+            }
+        }
+    }
+    return map;
+}
+
+boost::python::list readSequence(cv::FileNode fn, int depth)
+{
+    boost::python::list sequence;
+    if (fn.isMap()) {
+        cv::FileNodeIterator it = fn.begin(), itEnd = fn.end();
+        for (; it != itEnd; ++it) {
+            cv::FileNode item = *it;
+            
+            if (item.isNone())
+            {
+                sequence.append(boost::python::object());
+            }
+            else if (item.isInt())
+            {
+                sequence.append(int(item));
+            }
+            else if (item.isString())
+            {
+                sequence.append(std::string(item));
+            }
+            else if (item.isReal())
+            {
+                sequence.append(float(item));
+            }
+            else if (item.isSeq() && depth > 0)
+            {
+                sequence.append(readSequence(item, depth-1)); // Depth-limited recursive call to read nested sequences
+            }
+            else if (item.isMap() && depth > 0)
+            {
+                sequence.append(readMap(item, depth-1));
+            }
+        }
+    }
+    return sequence;
+}
