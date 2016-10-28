@@ -158,7 +158,18 @@ boost::python::dict readMap(cv::FileNode fn, int depth=10);
 boost::python::dict ORBSlamPython::loadSettingsFile(std::string settingsFilename)
 {
     cv::FileStorage fs(settingsFilename.c_str(), cv::FileStorage::READ);
-    return readMap(fs.getFirstTopLevelNode());
+    cv::FileNode root = fs.root();
+    if (root.isMap()) 
+    {
+        return readMap(root);
+    }
+    else if (root.isSeq())
+    {
+        boost::python::dict settings;
+        settings["root"] = readSequence(root);
+        return settings;
+    }
+    return boost::python::dict();
 }
 
 
@@ -204,7 +215,7 @@ boost::python::dict readMap(cv::FileNode fn, int depth)
 boost::python::list readSequence(cv::FileNode fn, int depth)
 {
     boost::python::list sequence;
-    if (fn.isMap()) {
+    if (fn.isSeq()) {
         cv::FileNodeIterator it = fn.begin(), itEnd = fn.end();
         for (; it != itEnd; ++it) {
             cv::FileNode item = *it;
