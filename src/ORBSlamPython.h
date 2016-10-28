@@ -18,6 +18,7 @@ public:
     void reset();
     void shutdown();
     boost::python::list getTrajectoryPoints() const;
+    bool saveSettings(boost::python::dict settings);
     
 private:
     std::string vocabluaryFile;

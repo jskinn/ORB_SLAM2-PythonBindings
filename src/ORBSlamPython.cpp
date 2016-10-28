@@ -11,7 +11,8 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("shutdown", &ORBSlamPython::shutdown)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
-        .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints);
+        .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
+        .def("save_settings", &ORBSlamPython::saveSettings);
 }
 
 ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
@@ -94,5 +95,44 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     }
 
     return trajectory;
+}
+
+bool ORBSlamPython::saveSettings(boost::python::dict settings)
+{
+    cv::FileStorage fs(settingsFile.c_str(), cv::FileStorage::WRITE);
+    
+    boost::python::list keys = settings.keys();
+    for (int index = 0; index < boost::python::len(keys); ++index)
+    {
+        boost::python::extract<std::string> extractedKey(keys[index]);
+        if (!extractedKey.check())
+        {
+            continue;
+        }
+        std::string key = extractedKey;
+        
+        boost::python::extract<int> intValue(settings[key]);
+        if (intValue.check())
+        {
+            fs << key << int(intValue);
+            continue;
+        }
+        
+        boost::python::extract<float> floatValue(settings[key]);
+        if (floatValue.check())
+        {
+            fs << key << float(floatValue);
+            continue;
+        }
+        
+        boost::python::extract<std::string> stringValue(settings[key]);
+        if (stringValue.check())
+        {
+            fs << key << std::string(stringValue);
+            continue;
+        }
+    }
+    
+    return true;
 }
 
