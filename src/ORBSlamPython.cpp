@@ -1,10 +1,18 @@
 #include <opencv2/core/core.hpp>
 #include <ORB_SLAM2/KeyFrame.h>
 #include <ORB_SLAM2/Converter.h>
+#include <ORB_SLAM2/Tracking.h>
 #include "ORBSlamPython.h"
 
 BOOST_PYTHON_MODULE(orbslam2)
 {
+    boost::python::enum_<ORB_SLAM2::Tracking::eTrackingState>("TrackingState")
+        .value("SYSTEM_NOT_READY", ORB_SLAM2::Tracking::eTrackingState::SYSTEM_NOT_READY)
+        .value("NO_IMAGES_YET", ORB_SLAM2::Tracking::eTrackingState::NO_IMAGES_YET)
+        .value("NOT_INITIALIZED", ORB_SLAM2::Tracking::eTrackingState::NOT_INITIALIZED)
+        .value("OK", ORB_SLAM2::Tracking::eTrackingState::OK)
+        .value("LOST", ORB_SLAM2::Tracking::eTrackingState::LOST);
+        
     boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<std::string, std::string>())
         .def("initialize", &ORBSlamPython::initialize)
         .def("load_and_process_image", &ORBSlamPython::loadAndProcessImage)
@@ -12,6 +20,7 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
+        .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("save_settings", &ORBSlamPython::saveSettings)
         .def("load_settings", &ORBSlamPython::loadSettings)
         .def("save_settings_file", &ORBSlamPython::saveSettingsFile)
@@ -64,6 +73,11 @@ bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
 void ORBSlamPython::shutdown()
 {
     system->Shutdown();
+}
+
+ORB_SLAM2::Tracking::eTrackingState ORBSlamPython::getTrackingState() const
+{
+    return static_cast<ORB_SLAM2::Tracking::eTrackingState>(system->GetTrackingState());
 }
 
 boost::python::list ORBSlamPython::getTrajectoryPoints() const

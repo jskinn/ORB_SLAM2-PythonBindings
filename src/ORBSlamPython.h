@@ -5,6 +5,7 @@
 #include <Python.h>
 #include <boost/python.hpp>
 #include <ORB_SLAM2/System.h>
+#include <ORB_SLAM2/Tracking.h>
 
 class ORBSlamPython
 {
@@ -17,6 +18,7 @@ public:
     bool loadAndProcessImage(std::string imageFile, double timestamp);
     void reset();
     void shutdown();
+    ORB_SLAM2::Tracking::eTrackingState getTrackingState() const;
     boost::python::list getTrajectoryPoints() const;
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
