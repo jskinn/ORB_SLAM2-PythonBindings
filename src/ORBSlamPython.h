@@ -22,6 +22,7 @@ public:
     boost::python::list getTrajectoryPoints() const;
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
+    void setResolution(int x, int y);
     
     static bool saveSettingsFile(boost::python::dict settings, std::string settingsFilename);
     static boost::python::dict loadSettingsFile(std::string settingsFilename);
@@ -30,6 +31,8 @@ private:
     std::string vocabluaryFile;
     std::string settingsFile;
     std::shared_ptr<ORB_SLAM2::System> system;
+    int resolutionX;
+    int resolutionY;
 };
 
 

@@ -19,6 +19,7 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("shutdown", &ORBSlamPython::shutdown)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
+        .def("set_resolution", &ORBSlamPython::setResolution)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("save_settings", &ORBSlamPython::saveSettings)
@@ -32,7 +33,9 @@ BOOST_PYTHON_MODULE(orbslam2)
 ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
     : vocabluaryFile(vocabFile),
     settingsFile(settingsFile),
-    system(std::make_shared<ORB_SLAM2::System>(ORB_SLAM2::System::MONOCULAR))
+    system(std::make_shared<ORB_SLAM2::System>(ORB_SLAM2::System::MONOCULAR)),
+    resolutionX(640),
+    resolutionY(480)
 {
     
 }
@@ -43,7 +46,7 @@ ORBSlamPython::~ORBSlamPython()
 
 bool ORBSlamPython::initialize()
 {
-    return system->StartUp(vocabluaryFile, settingsFile, false);
+    return system->StartUp(vocabluaryFile, settingsFile, true);
 }
 
 bool ORBSlamPython::isRunning()
@@ -63,6 +66,7 @@ bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
 {
     cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
     if (im.data) {
+        cv::resize(im, im, cv::Size(resolutionX, resolutionY));
         cv::Mat pose = system->TrackMonocular(im, timestamp);
         return pose.empty();
     } else {
@@ -114,6 +118,12 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     }
 
     return trajectory;
+}
+
+void ORBSlamPython::setResolution(int x, int y)
+{
+    resolutionX = x;
+    resolutionY = y;
 }
 
 bool ORBSlamPython::saveSettings(boost::python::dict settings) const
