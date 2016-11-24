@@ -35,7 +35,8 @@ ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
     settingsFile(settingsFile),
     system(std::make_shared<ORB_SLAM2::System>(ORB_SLAM2::System::MONOCULAR)),
     resolutionX(640),
-    resolutionY(480)
+    resolutionY(480),
+    bUseViewer(false)
 {
     
 }
@@ -46,7 +47,7 @@ ORBSlamPython::~ORBSlamPython()
 
 bool ORBSlamPython::initialize()
 {
-    return system->StartUp(vocabluaryFile, settingsFile, true);
+    return system->StartUp(vocabluaryFile, settingsFile, bUseViewer);
 }
 
 bool ORBSlamPython::isRunning()
@@ -124,6 +125,11 @@ void ORBSlamPython::setResolution(int x, int y)
 {
     resolutionX = x;
     resolutionY = y;
+}
+
+void ORBSlamPython::setUseViewer(bool useViewer)
+{
+    bUseViewer = useViewer;
 }
 
 bool ORBSlamPython::saveSettings(boost::python::dict settings) const
