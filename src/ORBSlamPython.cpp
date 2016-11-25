@@ -34,7 +34,7 @@ BOOST_PYTHON_MODULE(orbslam2)
 ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile)
     : vocabluaryFile(vocabFile),
     settingsFile(settingsFile),
-    system(std::make_shared<ORB_SLAM2::System>(ORB_SLAM2::System::MONOCULAR)),
+    system(nullptr),
     resolutionX(640),
     resolutionY(480),
     bUseViewer(false)
@@ -48,12 +48,13 @@ ORBSlamPython::~ORBSlamPython()
 
 bool ORBSlamPython::initialize()
 {
-    return system->StartUp(vocabluaryFile, settingsFile, bUseViewer);
+    system = std::make_shared<ORB_SLAM2::System>(vocabluaryFile, settingsFile, ORB_SLAM2::System::MONOCULAR, bUseViewer);
+    return true;
 }
 
 bool ORBSlamPython::isRunning()
 {
-    return system && system->IsRunning();
+    return system != nullptr;
 }
 
 void ORBSlamPython::reset()
@@ -66,6 +67,10 @@ void ORBSlamPython::reset()
 
 bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
 {
+    if (!system)
+    {
+        return false;
+    }
     cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
     if (im.data) {
         cv::resize(im, im, cv::Size(resolutionX, resolutionY));
@@ -78,18 +83,30 @@ bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
 
 void ORBSlamPython::shutdown()
 {
-    system->Shutdown();
+    if (system)
+    {
+        system->Shutdown();
+        system.reset();
+    }
 }
 
 ORB_SLAM2::Tracking::eTrackingState ORBSlamPython::getTrackingState() const
 {
-    return static_cast<ORB_SLAM2::Tracking::eTrackingState>(system->GetTrackingState());
+    if (system) {
+        return static_cast<ORB_SLAM2::Tracking::eTrackingState>(system->GetTrackingState());
+    }
+    return ORB_SLAM2::Tracking::eTrackingState::SYSTEM_NOT_READY;
 }
 
 boost::python::list ORBSlamPython::getTrajectoryPoints() const
 {
+    if (!system)
+    {
+        return boost::python::list();
+    }
+    
     // This is copied from the ORB_SLAM2 System.SaveTrajectoryTUM function, with some changes to output a python tuple.
-    vector<std::shared_ptr<ORB_SLAM2::KeyFrame>> vpKFs = system->GetKeyFrames();
+    vector<ORB_SLAM2::KeyFrame*> vpKFs = system->GetKeyFrames();
     std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM2::KeyFrame::lId);
 
     // Transform all keyframes so that the first keyframe is at the origin.
@@ -100,7 +117,7 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
 
     for(size_t i=0; i<vpKFs.size(); i++)
     {
-        std::shared_ptr<ORB_SLAM2::KeyFrame> pKF = vpKFs[i];
+        ORB_SLAM2::KeyFrame* pKF = vpKFs[i];
 
        // pKF->SetPose(pKF->GetPose()*Two);
 
