@@ -48,7 +48,7 @@ ORBSlamPython::~ORBSlamPython()
 
 bool ORBSlamPython::initialize()
 {
-    system = std::make_shared<ORB_SLAM2::System>(vocabluaryFile, settingsFile, ORB_SLAM2::System::MONOCULAR, bUseViewer);
+    system = std::make_shared<ORB_SLAM2::System>(vocabluaryFile, settingsFile, ORB_SLAM2::System::STEREO, bUseViewer);
     return true;
 }
 
@@ -65,16 +65,18 @@ void ORBSlamPython::reset()
     }
 }
 
-bool ORBSlamPython::loadAndProcessImage(std::string imageFile, double timestamp)
+bool ORBSlamPython::loadAndProcessImage(std::string leftImageFile, std::string rightImageFile, double timestamp)
 {
     if (!system)
     {
         return false;
     }
-    cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
-    if (im.data) {
-        cv::resize(im, im, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackMonocular(im, timestamp);
+    cv::Mat imLeft = cv::imread(leftImageFile, CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat imRight = cv::imread(rightImageFile, CV_LOAD_IMAGE_UNCHANGED);
+    if (imLeft.data && imRight.data) {
+        cv::resize(imLeft, imLeft, cv::Size(resolutionX, resolutionY));
+        cv::resize(imRight, imRight, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackStereo(imLeft, imRight, timestamp);
         return pose.empty();
     } else {
         return false;
