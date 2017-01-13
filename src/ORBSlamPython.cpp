@@ -48,7 +48,7 @@ ORBSlamPython::~ORBSlamPython()
 
 bool ORBSlamPython::initialize()
 {
-    system = std::make_shared<ORB_SLAM2::System>(vocabluaryFile, settingsFile, ORB_SLAM2::System::STEREO, bUseViewer);
+    system = std::make_shared<ORB_SLAM2::System>(vocabluaryFile, settingsFile, ORB_SLAM2::System::RGBD, bUseViewer);
     return true;
 }
 
@@ -65,18 +65,18 @@ void ORBSlamPython::reset()
     }
 }
 
-bool ORBSlamPython::loadAndProcessImage(std::string leftImageFile, std::string rightImageFile, double timestamp)
+bool ORBSlamPython::loadAndProcessImage(std::string imageFile, std::string depthImageFile, double timestamp)
 {
     if (!system)
     {
         return false;
     }
-    cv::Mat imLeft = cv::imread(leftImageFile, CV_LOAD_IMAGE_UNCHANGED);
-    cv::Mat imRight = cv::imread(rightImageFile, CV_LOAD_IMAGE_UNCHANGED);
-    if (imLeft.data && imRight.data) {
-        cv::resize(imLeft, imLeft, cv::Size(resolutionX, resolutionY));
-        cv::resize(imRight, imRight, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackStereo(imLeft, imRight, timestamp);
+    cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
+    cv::Mat imDepth = cv::imread(depthImageFile, CV_LOAD_IMAGE_UNCHANGED);
+    if (im.data && imDepth.data) {
+        cv::resize(im, im, cv::Size(resolutionX, resolutionY));
+        cv::resize(imDepth, imDepth, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackRGBD(im, imDepth, timestamp);
         return pose.empty();
     } else {
         return false;

@@ -15,7 +15,7 @@ public:
     
     bool initialize();
     bool isRunning();
-    bool loadAndProcessImage(std::string leftImageFile, std::string rightImageFile, double timestamp);
+    bool loadAndProcessImage(std::string imageFile, std::string depthImageFile, double timestamp);
     void reset();
     void shutdown();
     ORB_SLAM2::Tracking::eTrackingState getTrackingState() const;
