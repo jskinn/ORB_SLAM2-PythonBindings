@@ -1,16 +1,48 @@
 # ORB_SLAM2-PythonBindings
 A python wrapper for ORB_SLAM2, which can be found at [https://github.com/raulmur/ORB_SLAM2](https://github.com/raulmur/ORB_SLAM2).
-This branch is designed to work with the base version of ORB_SLAM2, with a couple of minimal API changes to access the system output.
-These changes can be found in the "ORB_SLAM2 changes" folder,
-and should simply add 3 functions to the ORB_SLAM2 System class.
+This is designed to work with the base version of ORB_SLAM2, with a couple of minimal API changes to access the system output.
+It has been tested on ubuntu 14.04 and 16.04 and built against Python3, although it does not rely on any python3 features.
+
+## Installation
+
+### Prerequesities
+
+- ORBSLAM2 source code
+- ORBSLAM2 compiliation dependencies (Pangolin, Eigen, OpenCV)
+- Boost, specifically its python component (python-35)
+
+### Setup
+
+#### Modifying ORBSLAM2
+First, we need an additional API method from ORBSLAM to extract completed trajectories.
+Apply the patch file "orbslam-changes.diff" to the ORBSLAM2 source, which should create an additional method and add some installation instructions to the end of CMakeLists.txt.
+Build orbslam as normal, and then run `make install`. This will install the ORBSLAM2 headers and .so to /usr/local
+(if an alternative installation directory is desired, specify it to cmake using `-DCMAKE_INSTALL_PREFIX=/your/desired/location`).
+
+#### Compilation
+Return to the ORBSLAM-Python source, build and install it by running
+```
+mkdir build
+cd build
+cmake ..
+make
+make install
+```
+This will install the .so file to /usr/local/lib/python3.5/dist-packages, such that it should 
+If you have changed the install location of ORBSLAM2, you need to change the search path hard-coded in CMakeLists.txt on line 34 and 35 to point to your custom location.
+
+Verify your installation by typing
+```
+python3
+>>> import orbslam2
+```
+And there should be no errors.
+
+#### Alternative Python Versions
+
+At the moment, CMakeLists is hard-coded to use python 3.5. If you wish to use a different version, simply change the boost component used (python-35) to the desired version (say, python-27), on line 38 of CMakeLists.txt.
+You will also need to change the install location on line 73 of CMakeLists.txt to your desired dist/site packages directory.
 
 ## License
 This code is licensed under the BSD Simplified license, although it requires and links to ORB_SLAM2, which is available under the GPLv3 license
 
-## Prerequisites
-Boost::Python and ORB_SLAM2
-
-This has been tested on ubuntu 14.04 and built against Python3, although it does not rely on any python3 features.
-If you're running into difficulty, check which version of python the Boost::Python you're using was built against.
-In particular, at time of writing, the version installed by ubuntu's apt repository was built against python2.
-Incorrect python versions will fail when the module is imported into python, not at compile time.

@@ -31,18 +31,13 @@ endif()
 
 #Set the ORBSLAM directory path
 #TODO: Convert this to a proper FindORB_SLAM2.cmake
-set(ORBSLAM2_INCLUDE_DIR "/usr/local/include")
+set(ORBSLAM2_INCLUDE_DIR "/usr/local/install/include")
 set(ORBSLAM2_LIB "/usr/local/lib/libORB_SLAM2.so")
 
-# I'm using a custom boost library, because the default one uses python 2 -_-
-set(BOOST_ROOT "/opt/boost_1_62_0_python3/")
-set(Python_ADDITIONAL_VERSIONS 3.4)
-
 find_package(PythonLibs 3.4 REQUIRED)
-#find_package(Boost 1.45.0 REQUIRED)
-find_package(Boost 1.45.0 REQUIRED COMPONENTS python)
-find_package(OpenCV 2.4.3 REQUIRED)
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(Pangolin REQUIRED)
 
 # RPATH fiddling for the library, so that we can find our alternate boost
@@ -54,7 +49,7 @@ ${ORBSLAM2_INCLUDE_DIR}
 ${EIGEN3_INCLUDE_DIR}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_INCLUDE_DIRS}
-#${Pangolin_INCLUDE_DIRS}
+${Pangolin_INCLUDE_DIRS}
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
@@ -75,6 +70,5 @@ ${Boost_LIBRARIES}
 ${PYTHON_LIBRARIES}
 )
 
-set(${INSTALL_DIR} /home/john/python)
-install(TARGETS ${TARGET_MODULE_NAME} DESTINATION /home/john/python)
+install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.5/dist-packages)
 
