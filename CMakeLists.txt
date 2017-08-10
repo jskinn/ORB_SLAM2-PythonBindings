@@ -51,7 +51,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 set(TARGET_MODULE_NAME orbslam2)
-add_library(${TARGET_MODULE_NAME} SHARED src/ORBSlamPython.cpp)
+add_library(${TARGET_MODULE_NAME} SHARED
+src/ORBSlamPython.cpp
+src/pyboost_cv2_converter.cpp
+src/pyboost_cv3_converter.cpp)
 set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 
 target_link_libraries(${TARGET_MODULE_NAME} 

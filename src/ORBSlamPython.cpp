@@ -1,11 +1,29 @@
+#define PY_ARRAY_UNIQUE_SYMBOL pbcvt_ARRAY_API
 #include <opencv2/core/core.hpp>
+#include <pyboostcvconverter/pyboostcvconverter.hpp>
 #include <ORB_SLAM2/KeyFrame.h>
 #include <ORB_SLAM2/Converter.h>
 #include <ORB_SLAM2/Tracking.h>
 #include "ORBSlamPython.h"
 
+#if (PY_VERSION_HEX >= 0x03000000)
+static void* init_ar() {
+#else
+static void init_ar() {
+#endif
+    Py_Initialize();
+
+    import_array();
+    return NUMPY_IMPORT_ARRAY_RETVAL;
+}
+
 BOOST_PYTHON_MODULE(orbslam2)
 {
+    init_ar();
+
+    boost::python::to_python_converter<cv::Mat, pbcvt::matToNDArrayBoostConverter>();
+    pbcvt::matFromNDArrayBoostConverter();
+
     boost::python::enum_<ORB_SLAM2::Tracking::eTrackingState>("TrackingState")
         .value("SYSTEM_NOT_READY", ORB_SLAM2::Tracking::eTrackingState::SYSTEM_NOT_READY)
         .value("NO_IMAGES_YET", ORB_SLAM2::Tracking::eTrackingState::NO_IMAGES_YET)
@@ -16,6 +34,7 @@ BOOST_PYTHON_MODULE(orbslam2)
     boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<std::string, std::string>())
         .def("initialize", &ORBSlamPython::initialize)
         .def("load_and_process_image", &ORBSlamPython::loadAndProcessImage)
+        .def("process_image", &ORBSlamPython::processImage)
         .def("shutdown", &ORBSlamPython::shutdown)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
@@ -73,10 +92,19 @@ bool ORBSlamPython::loadAndProcessImage(std::string imageFile, std::string depth
     }
     cv::Mat im = cv::imread(imageFile, CV_LOAD_IMAGE_UNCHANGED);
     cv::Mat imDepth = cv::imread(depthImageFile, CV_LOAD_IMAGE_UNCHANGED);
-    if (im.data && imDepth.data) {
-        cv::resize(im, im, cv::Size(resolutionX, resolutionY));
-        cv::resize(imDepth, imDepth, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackRGBD(im, imDepth, timestamp);
+    return this->processImage(im, imDepth, timestamp);
+}
+
+bool ORBSlamPython::processImage(cv::Mat image, cv::Mat depthImage, double timestamp)
+{
+    if (!system)
+    {
+        return false;
+    }
+    if (image.data && depthImage.data) {
+        cv::resize(image, image, cv::Size(resolutionX, resolutionY));
+        cv::resize(depthImage, depthImage, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackRGBD(image, depthImage, timestamp);
         return pose.empty();
     } else {
         return false;

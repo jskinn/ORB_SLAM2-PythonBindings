@@ -47,3 +47,5 @@ You will also need to change the install location on line 73 of CMakeLists.txt t
 ## License
 This code is licensed under the BSD Simplified license, although it requires and links to ORB_SLAM2, which is available under the GPLv3 license
 
+It uses pyboostcvconverter (https://github.com/Algomorph/pyboostcvconverter) by Gregory Kramida under the MIT licence (see pyboostcvconverter-LICENSE).
+
