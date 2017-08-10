@@ -29,7 +29,8 @@ make
 make install
 ```
 This will install the .so file to /usr/local/lib/python3.5/dist-packages, such that it should 
-If you have changed the install location of ORBSLAM2, you need to change the search path hard-coded in CMakeLists.txt on line 34 and 35 to point to your custom location.
+If you have changed the install location of ORBSLAM2, you need to indicate where it is installed using ``-DORB_SLAM2_DIR=/your/desired/location``,
+which should be the same as the install prefix above (and contain 'include' and 'lib' folders).
 
 Verify your installation by typing
 ```

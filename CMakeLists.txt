@@ -7,8 +7,7 @@ ENDIF()
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
-
-#LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
@@ -29,23 +28,19 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-#Set the ORBSLAM directory path
-#TODO: Convert this to a proper FindORB_SLAM2.cmake
-set(ORBSLAM2_INCLUDE_DIR "/usr/local/install/include")
-set(ORBSLAM2_LIB "/usr/local/lib/libORB_SLAM2.so")
-
-find_package(PythonLibs 3.4 REQUIRED)
+find_package(PythonLibs 3.5 REQUIRED)
 find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(ORB_SLAM2 REQUIRED)
 
-# RPATH fiddling for the library, so that we can find our alternate boost
+# RPATH fiddling for the library, so that the installed version can find the linked libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/src
-${ORBSLAM2_INCLUDE_DIR}
+${ORB_SLAM2_INCLUDE_DIR}
 ${EIGEN3_INCLUDE_DIR}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_INCLUDE_DIRS}
@@ -59,10 +54,8 @@ set(TARGET_MODULE_NAME orbslam2)
 add_library(${TARGET_MODULE_NAME} SHARED src/ORBSlamPython.cpp)
 set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 
-MESSAGE(${Boost_INCLUDE_DIRS})
-
 target_link_libraries(${TARGET_MODULE_NAME} 
-${ORBSLAM2_LIB}
+${ORB_SLAM2_LIBRARIES}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 ${Pangolin_LIBRARIES}
