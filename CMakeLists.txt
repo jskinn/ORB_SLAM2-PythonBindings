@@ -31,9 +31,6 @@ endif()
 find_package(PythonLibs 3.5 REQUIRED)
 find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
 find_package(OpenCV REQUIRED)
-if (NOT ${EIGEN3_INCLUDE_DIR})
-  find_package(Eigen3 REQUIRED)
-endif()
 find_package(ORB_SLAM2 REQUIRED)
 find_package(Pangolin)
 
@@ -43,7 +40,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 include_directories(
 ${PROJECT_SOURCE_DIR}/src
 ${ORB_SLAM2_INCLUDE_DIR}
-${EIGEN3_INCLUDE_DIR}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_INCLUDE_DIRS}
 )
@@ -64,7 +60,6 @@ set_target_properties(${TARGET_MODULE_NAME} PROPERTIES PREFIX "")
 target_link_libraries(${TARGET_MODULE_NAME} 
 ${ORB_SLAM2_LIBRARIES}
 ${OpenCV_LIBS}
-${EIGEN3_LIBS}
 ${Boost_LIBRARIES}
 ${PYTHON_LIBRARIES}
 )
