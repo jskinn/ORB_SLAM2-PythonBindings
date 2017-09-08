@@ -117,8 +117,9 @@ bool ORBSlamPython::processMono(cv::Mat image, double timestamp)
         return false;
     }
     if (image.data) {
-        cv::resize(image, image, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackMonocular(image, timestamp);
+		cv::Mat resizedImage;
+        cv::resize(image, resizedImage, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackMonocular(resizedImage, timestamp);
         return !pose.empty();
     } else {
         return false;
@@ -147,9 +148,11 @@ bool ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double 
         return false;
     }
     if (leftImage.data && rightImage.data) {
-        cv::resize(leftImage, leftImage, cv::Size(resolutionX, resolutionY));
-        cv::resize(rightImage, rightImage, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackStereo(leftImage, rightImage, timestamp);
+		cv::Mat resizedLeftImage;
+		cv::Mat resizedRightImage;
+        cv::resize(leftImage, resizedLeftImage, cv::Size(resolutionX, resolutionY));
+        cv::resize(rightImage, resizedRightImage, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackStereo(resizedLeftImage, resizedRightImage, timestamp);
         return !pose.empty();
     } else {
         return false;
@@ -177,9 +180,11 @@ bool ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timest
         return false;
     }
     if (image.data && depthImage.data) {
-        cv::resize(image, image, cv::Size(resolutionX, resolutionY));
-        cv::resize(depthImage, depthImage, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackRGBD(image, depthImage, timestamp);
+		cv::Mat resizedImage;
+		cv::Mat resizedDepthImage;
+        cv::resize(image, resizedImage, cv::Size(resolutionX, resolutionY));
+        cv::resize(depthImage, resizedDepthImage, cv::Size(resolutionX, resolutionY));
+        cv::Mat pose = system->TrackRGBD(resizedImage, resizedDepthImage, timestamp);
         return !pose.empty();
     } else {
         return false;
