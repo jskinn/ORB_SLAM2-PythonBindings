@@ -13,6 +13,9 @@ public:
     ORBSlamPython(std::string vocabFile, std::string settingsFile,
         int resolutionX = 640, int resolutionY = 480,
         ORB_SLAM2::System::eSensor sensorMode = ORB_SLAM2::System::eSensor::RGBD);
+    ORBSlamPython(const char* vocabFile, const char* settingsFile,
+        int resolutionX = 640, int resolutionY = 480,
+        ORB_SLAM2::System::eSensor sensorMode = ORB_SLAM2::System::eSensor::RGBD);
     ~ORBSlamPython();
     
     bool initialize();
