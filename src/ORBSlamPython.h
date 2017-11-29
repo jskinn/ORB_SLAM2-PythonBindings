@@ -11,10 +11,8 @@ class ORBSlamPython
 {
 public:
     ORBSlamPython(std::string vocabFile, std::string settingsFile,
-        int resolutionX = 640, int resolutionY = 480,
         ORB_SLAM2::System::eSensor sensorMode = ORB_SLAM2::System::eSensor::RGBD);
     ORBSlamPython(const char* vocabFile, const char* settingsFile,
-        int resolutionX = 640, int resolutionY = 480,
         ORB_SLAM2::System::eSensor sensorMode = ORB_SLAM2::System::eSensor::RGBD);
     ~ORBSlamPython();
     
@@ -32,9 +30,8 @@ public:
     boost::python::list getTrajectoryPoints() const;
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
-    void setResolution(int x, int y);
-	void setMode(ORB_SLAM2::System::eSensor mode);
-	void setRGBMode(bool rgb);
+    void setMode(ORB_SLAM2::System::eSensor mode);
+    void setRGBMode(bool rgb);
     void setUseViewer(bool useViewer);
     
     static bool saveSettingsFile(boost::python::dict settings, std::string settingsFilename);
@@ -45,8 +42,6 @@ private:
     std::string settingsFile;
     ORB_SLAM2::System::eSensor sensorMode;
     std::shared_ptr<ORB_SLAM2::System> system;
-    int resolutionX;
-    int resolutionY;
     bool bUseViewer;
     bool bUseRGB;
 };

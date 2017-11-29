@@ -36,19 +36,18 @@ BOOST_PYTHON_MODULE(orbslam2)
         .value("STEREO", ORB_SLAM2::System::eSensor::STEREO)
         .value("RGBD", ORB_SLAM2::System::eSensor::RGBD);
 
-    boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<const char*, const char*, boost::python::optional<int, int, ORB_SLAM2::System::eSensor>>())
-        .def(boost::python::init<std::string, std::string, boost::python::optional<int, int, ORB_SLAM2::System::eSensor>>())
+    boost::python::class_<ORBSlamPython, boost::noncopyable>("System", boost::python::init<const char*, const char*, boost::python::optional<ORB_SLAM2::System::eSensor>>())
+        .def(boost::python::init<std::string, std::string, boost::python::optional<ORB_SLAM2::System::eSensor>>())
         .def("initialize", &ORBSlamPython::initialize)
         .def("load_and_process_mono", &ORBSlamPython::loadAndProcessMono)
         .def("process_image_mono", &ORBSlamPython::processMono)
-		.def("load_and_process_stereo", &ORBSlamPython::loadAndProcessStereo)
+        .def("load_and_process_stereo", &ORBSlamPython::loadAndProcessStereo)
         .def("process_image_stereo", &ORBSlamPython::processStereo)
-		.def("load_and_process_rgbd", &ORBSlamPython::loadAndProcessRGBD)
+        .def("load_and_process_rgbd", &ORBSlamPython::loadAndProcessRGBD)
         .def("process_image_rgbd", &ORBSlamPython::processRGBD)
         .def("shutdown", &ORBSlamPython::shutdown)
         .def("is_running", &ORBSlamPython::isRunning)
         .def("reset", &ORBSlamPython::reset)
-        .def("set_resolution", &ORBSlamPython::setResolution)
         .def("set_mode", &ORBSlamPython::setMode)
         .def("set_use_viewer", &ORBSlamPython::setUseViewer)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
@@ -61,30 +60,24 @@ BOOST_PYTHON_MODULE(orbslam2)
         .staticmethod("load_settings_file");
 }
 
-ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile,
-        int resolutionX, int resolutionY, ORB_SLAM2::System::eSensor sensorMode)
+ORBSlamPython::ORBSlamPython(std::string vocabFile, std::string settingsFile, ORB_SLAM2::System::eSensor sensorMode)
     : vocabluaryFile(vocabFile),
     settingsFile(settingsFile),
-	sensorMode(sensorMode),
+    sensorMode(sensorMode),
     system(nullptr),
-    resolutionX(resolutionX),
-    resolutionY(resolutionY),
     bUseViewer(false),
-	bUseRGB(true)
+    bUseRGB(true)
 {
     
 }
 
-ORBSlamPython::ORBSlamPython(const char* vocabFile, const char* settingsFile,
-        int resolutionX, int resolutionY, ORB_SLAM2::System::eSensor sensorMode)
+ORBSlamPython::ORBSlamPython(const char* vocabFile, const char* settingsFile, ORB_SLAM2::System::eSensor sensorMode)
     : vocabluaryFile(vocabFile),
     settingsFile(settingsFile),
-	sensorMode(sensorMode),
+    sensorMode(sensorMode),
     system(nullptr),
-    resolutionX(resolutionX),
-    resolutionY(resolutionY),
     bUseViewer(false),
-	bUseRGB(true)
+    bUseRGB(true)
 {
 
 }
@@ -120,8 +113,8 @@ bool ORBSlamPython::loadAndProcessMono(std::string imageFile, double timestamp)
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
     if (bUseRGB) {
-		cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
-	}
+        cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
+    }
     return this->processMono(im, timestamp);
 }
 
@@ -132,9 +125,7 @@ bool ORBSlamPython::processMono(cv::Mat image, double timestamp)
         return false;
     }
     if (image.data) {
-		cv::Mat resizedImage;
-        cv::resize(image, resizedImage, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackMonocular(resizedImage, timestamp);
+        cv::Mat pose = system->TrackMonocular(image, timestamp);
         return !pose.empty();
     } else {
         return false;
@@ -148,11 +139,11 @@ bool ORBSlamPython::loadAndProcessStereo(std::string leftImageFile, std::string 
         return false;
     }
     cv::Mat leftImage = cv::imread(leftImageFile, cv::IMREAD_COLOR);
-	cv::Mat rightImage = cv::imread(rightImageFile, cv::IMREAD_COLOR);
-	if (bUseRGB) {
-		cv::cvtColor(leftImage, leftImage, cv::COLOR_BGR2RGB);
-		cv::cvtColor(rightImage, rightImage, cv::COLOR_BGR2RGB);
-	}
+    cv::Mat rightImage = cv::imread(rightImageFile, cv::IMREAD_COLOR);
+    if (bUseRGB) {
+        cv::cvtColor(leftImage, leftImage, cv::COLOR_BGR2RGB);
+        cv::cvtColor(rightImage, rightImage, cv::COLOR_BGR2RGB);
+    }
     return this->processStereo(leftImage, rightImage, timestamp);
 }
 
@@ -163,11 +154,7 @@ bool ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double 
         return false;
     }
     if (leftImage.data && rightImage.data) {
-		cv::Mat resizedLeftImage;
-		cv::Mat resizedRightImage;
-        cv::resize(leftImage, resizedLeftImage, cv::Size(resolutionX, resolutionY));
-        cv::resize(rightImage, resizedRightImage, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackStereo(resizedLeftImage, resizedRightImage, timestamp);
+        cv::Mat pose = system->TrackStereo(leftImage, rightImage, timestamp);
         return !pose.empty();
     } else {
         return false;
@@ -181,9 +168,9 @@ bool ORBSlamPython::loadAndProcessRGBD(std::string imageFile, std::string depthI
         return false;
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
-	if (bUseRGB) {
-		cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
-	}
+    if (bUseRGB) {
+        cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
+    }
     cv::Mat imDepth = cv::imread(depthImageFile, cv::IMREAD_UNCHANGED);
     return this->processRGBD(im, imDepth, timestamp);
 }
@@ -195,11 +182,7 @@ bool ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timest
         return false;
     }
     if (image.data && depthImage.data) {
-		cv::Mat resizedImage;
-		cv::Mat resizedDepthImage;
-        cv::resize(image, resizedImage, cv::Size(resolutionX, resolutionY));
-        cv::resize(depthImage, resizedDepthImage, cv::Size(resolutionX, resolutionY));
-        cv::Mat pose = system->TrackRGBD(resizedImage, resizedDepthImage, timestamp);
+        cv::Mat pose = system->TrackRGBD(image, depthImage, timestamp);
         return !pose.empty();
     } else {
         return false;
@@ -262,12 +245,6 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     }
 
     return trajectory;
-}
-
-void ORBSlamPython::setResolution(int x, int y)
-{
-    resolutionX = x;
-    resolutionY = y;
 }
 
 void ORBSlamPython::setMode(ORB_SLAM2::System::eSensor mode)
