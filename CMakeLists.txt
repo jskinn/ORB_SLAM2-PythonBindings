@@ -29,6 +29,7 @@ else()
 endif()
 
 find_package(PythonLibs 3.5 REQUIRED)
+find_package(NumPy)
 find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
 find_package(OpenCV REQUIRED)
 find_package(ORB_SLAM2 REQUIRED)
@@ -42,6 +43,7 @@ ${PROJECT_SOURCE_DIR}/src
 ${ORB_SLAM2_INCLUDE_DIR}
 ${Boost_INCLUDE_DIRS}
 ${PYTHON_INCLUDE_DIRS}
+${PYTHON_NUMPY_INCLUDE_DIR}
 )
 if (Pangolin_FOUND)
   include_directories(${Pangolin_INCLUDE_DIRS})
