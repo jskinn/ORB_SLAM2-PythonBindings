@@ -32,28 +32,34 @@ index 08a8af4..ae72014 100644
 +FILES_MATCHING REGEX ".*\\.h(pp)?")
 +
 diff --git a/include/System.h b/include/System.h
-index b377b45..469ebd5 100644
+index b377b45..a564b19 100644
 --- a/include/System.h
 +++ b/include/System.h
-@@ -119,6 +119,7 @@ public:
+@@ -119,6 +119,8 @@ public:
      // Information from most recent processed frame
      // You can call this right after TrackMonocular (or stereo or RGBD)
      int GetTrackingState();
 +    vector<KeyFrame*> GetKeyFrames() const;
++    Tracking* GetTracker() const;
      std::vector<MapPoint*> GetTrackedMapPoints();
      std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
  
 diff --git a/src/System.cc b/src/System.cc
-index 8df4157..82add61 100644
+index 8df4157..f5e0c60 100644
 --- a/src/System.cc
 +++ b/src/System.cc
-@@ -477,6 +477,11 @@ int System::GetTrackingState()
+@@ -477,6 +477,16 @@ int System::GetTrackingState()
      return mTrackingState;
  }
  
 +vector<KeyFrame*> System::GetKeyFrames() const
 +{
 +    return mpMap->GetAllKeyFrames();
++}
++
++Tracking* System::GetTracker() const
++{
++    return mpTracker;
 +}
 +
  vector<MapPoint*> System::GetTrackedMapPoints()

@@ -50,6 +50,7 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("reset", &ORBSlamPython::reset)
         .def("set_mode", &ORBSlamPython::setMode)
         .def("set_use_viewer", &ORBSlamPython::setUseViewer)
+        .def("get_keyframe_points", &ORBSlamPython::getKeyframePoints)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("save_settings", &ORBSlamPython::saveSettings)
@@ -206,14 +207,14 @@ ORB_SLAM2::Tracking::eTrackingState ORBSlamPython::getTrackingState() const
     return ORB_SLAM2::Tracking::eTrackingState::SYSTEM_NOT_READY;
 }
 
-boost::python::list ORBSlamPython::getTrajectoryPoints() const
+boost::python::list ORBSlamPython::getKeyframePoints() const
 {
     if (!system)
     {
         return boost::python::list();
     }
-    
-    // This is copied from the ORB_SLAM2 System.SaveTrajectoryTUM function, with some changes to output a python tuple.
+
+    // This is copied from the ORB_SLAM2 System.SaveKeyFrameTrajectoryTUM function, with some changes to output a python tuple.
     vector<ORB_SLAM2::KeyFrame*> vpKFs = system->GetKeyFrames();
     std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM2::KeyFrame::lId);
 
@@ -227,21 +228,92 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
     {
         ORB_SLAM2::KeyFrame* pKF = vpKFs[i];
 
-       // pKF->SetPose(pKF->GetPose()*Two);
+        // pKF->SetPose(pKF->GetPose()*Two);
 
         if(pKF->isBad())
             continue;
 
         cv::Mat R = pKF->GetRotation().t();
-        vector<float> q = ORB_SLAM2::Converter::toQuaternion(R);
         cv::Mat t = pKF->GetCameraCenter();
-        
         trajectory.append(boost::python::make_tuple(
-            pKF->mTimeStamp,    // Timestamp
-            t.at<float>(0), t.at<float>(1), t.at<float>(2),  // Location
-            q[0], q[1], q[2], q[3]  // Orientation
-        ));
+                              pKF->mTimeStamp,
+                              R.at<float>(0,0),
+                              R.at<float>(0,1),
+                              R.at<float>(0,2),
+                              t.at<float>(0),
+                              R.at<float>(1,0),
+                              R.at<float>(1,1),
+                              R.at<float>(1,2),
+                              t.at<float>(1),
+                              R.at<float>(2,0),
+                              R.at<float>(2,1),
+                              R.at<float>(2,2),
+                              t.at<float>(2)
+                              ));
+    }
 
+    return trajectory;
+}
+
+boost::python::list ORBSlamPython::getTrajectoryPoints() const
+{
+    if (!system)
+    {
+        return boost::python::list();
+    }
+
+    // This is copied from the ORB_SLAM2 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
+    vector<ORB_SLAM2::KeyFrame*> vpKFs = system->GetKeyFrames();
+    std::sort(vpKFs.begin(), vpKFs.end(), ORB_SLAM2::KeyFrame::lId);
+
+    // Transform all keyframes so that the first keyframe is at the origin.
+    // After a loop closure the first keyframe might not be at the origin.
+    cv::Mat Two = vpKFs[0]->GetPoseInverse();
+
+    boost::python::list trajectory;
+
+    // Frame pose is stored relative to its reference keyframe (which is optimized by BA and pose graph).
+    // We need to get first the keyframe pose and then concatenate the relative transformation.
+    // Frames not localized (tracking failure) are not saved.
+
+    // For each frame we have a reference keyframe (lRit), the timestamp (lT) and a flag
+    // which is true when tracking failed (lbL).
+    std::list<ORB_SLAM2::KeyFrame*>::iterator lRit = system->GetTracker()->mlpReferences.begin();
+    std::list<double>::iterator lT = system->GetTracker()->mlFrameTimes.begin();
+    for(std::list<cv::Mat>::iterator lit=system->GetTracker()->mlRelativeFramePoses.begin(), lend=system->GetTracker()->mlRelativeFramePoses.end();lit!=lend;lit++, lRit++, lT++)
+    {
+        ORB_SLAM2::KeyFrame* pKF = *lRit;
+
+        cv::Mat Trw = cv::Mat::eye(4,4,CV_32F);
+
+        while(pKF->isBad())
+        {
+          //  cout << "bad parent" << endl;
+            Trw = Trw*pKF->mTcp;
+            pKF = pKF->GetParent();
+        }
+
+        Trw = Trw*pKF->GetPose()*Two;
+
+        cv::Mat Tcw = (*lit)*Trw;
+        cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
+        cv::Mat twc = -Rwc*Tcw.rowRange(0,3).col(3);
+
+        trajectory.append(boost::python::make_tuple(
+                              *lT,
+                              Rwc.at<float>(0,0),
+                              Rwc.at<float>(0,1),
+                              Rwc.at<float>(0,2),
+                              twc.at<float>(0),
+                              Rwc.at<float>(1,0),
+                              Rwc.at<float>(1,1),
+                              Rwc.at<float>(1,2),
+                              twc.at<float>(1),
+                              Rwc.at<float>(2,0),
+                              Rwc.at<float>(2,1),
+                              Rwc.at<float>(2,2),
+                              twc.at<float>(2)
+                          ));
     }
 
     return trajectory;

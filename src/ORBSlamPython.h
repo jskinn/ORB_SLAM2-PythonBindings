@@ -27,6 +27,7 @@ public:
     void reset();
     void shutdown();
     ORB_SLAM2::Tracking::eTrackingState getTrackingState() const;
+    boost::python::list getKeyframePoints() const;
     boost::python::list getTrajectoryPoints() const;
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
