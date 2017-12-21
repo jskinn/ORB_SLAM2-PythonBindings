@@ -53,6 +53,8 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("get_keyframe_points", &ORBSlamPython::getKeyframePoints)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
+        .def("get_num_features", &ORBSlamPython::getNumFeatures)
+        .def("get_num_matched_features", &ORBSlamPython::getNumMatches)
         .def("save_settings", &ORBSlamPython::saveSettings)
         .def("load_settings", &ORBSlamPython::loadSettings)
         .def("save_settings_file", &ORBSlamPython::saveSettingsFile)
@@ -113,7 +115,8 @@ bool ORBSlamPython::loadAndProcessMono(std::string imageFile, double timestamp)
         return false;
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
-    if (bUseRGB) {
+    if (bUseRGB)
+    {
         cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
     }
     return this->processMono(im, timestamp);
@@ -125,10 +128,13 @@ bool ORBSlamPython::processMono(cv::Mat image, double timestamp)
     {
         return false;
     }
-    if (image.data) {
+    if (image.data)
+    {
         cv::Mat pose = system->TrackMonocular(image, timestamp);
         return !pose.empty();
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
@@ -157,7 +163,9 @@ bool ORBSlamPython::processStereo(cv::Mat leftImage, cv::Mat rightImage, double 
     if (leftImage.data && rightImage.data) {
         cv::Mat pose = system->TrackStereo(leftImage, rightImage, timestamp);
         return !pose.empty();
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
@@ -169,7 +177,8 @@ bool ORBSlamPython::loadAndProcessRGBD(std::string imageFile, std::string depthI
         return false;
     }
     cv::Mat im = cv::imread(imageFile, cv::IMREAD_COLOR);
-    if (bUseRGB) {
+    if (bUseRGB)
+    {
         cv::cvtColor(im, im, cv::COLOR_BGR2RGB);
     }
     cv::Mat imDepth = cv::imread(depthImageFile, cv::IMREAD_UNCHANGED);
@@ -182,10 +191,13 @@ bool ORBSlamPython::processRGBD(cv::Mat image, cv::Mat depthImage, double timest
     {
         return false;
     }
-    if (image.data && depthImage.data) {
+    if (image.data && depthImage.data)
+    {
         cv::Mat pose = system->TrackRGBD(image, depthImage, timestamp);
         return !pose.empty();
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
@@ -201,10 +213,49 @@ void ORBSlamPython::shutdown()
 
 ORB_SLAM2::Tracking::eTrackingState ORBSlamPython::getTrackingState() const
 {
-    if (system) {
+    if (system)
+    {
         return static_cast<ORB_SLAM2::Tracking::eTrackingState>(system->GetTrackingState());
     }
     return ORB_SLAM2::Tracking::eTrackingState::SYSTEM_NOT_READY;
+}
+
+unsigned int ORBSlamPython::getNumFeatures() const
+{
+    if (system)
+    {
+        return system->GetTracker()->mCurrentFrame.mvKeys.size();
+    }
+    return 0;
+}
+
+unsigned int ORBSlamPython::getNumMatches() const
+{
+    if (system)
+    {
+        // This code is based on the display code in FrameDrawer.cc, with a little extra safety logic to check the length of the vectors.
+        ORB_SLAM2::Tracking* pTracker = system->GetTracker();
+        unsigned int matches = 0;
+        unsigned int num = pTracker->mCurrentFrame.mvKeys.size();
+        if (pTracker->mCurrentFrame.mvpMapPoints.size() < num)
+        {
+            num = pTracker->mCurrentFrame.mvpMapPoints.size();
+        }
+        if (pTracker->mCurrentFrame.mvbOutlier.size() < num)
+        {
+            num = pTracker->mCurrentFrame.mvbOutlier.size();
+        }
+        for(unsigned int i = 0; i < num; ++i)
+        {
+            ORB_SLAM2::MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
+            if(pMP && !pTracker->mCurrentFrame.mvbOutlier[i] && pMP->Observations() > 0)
+            {
+                ++matches;
+            }
+        }
+        return matches;
+    }
+    return 0;
 }
 
 boost::python::list ORBSlamPython::getKeyframePoints() const
