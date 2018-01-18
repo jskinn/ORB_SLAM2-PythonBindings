@@ -40,6 +40,14 @@ python3
 ```
 And there should be no errors.
 
+#### Examples
+
+ORBSLAM2's examples have been re-implemented in python in the examples folder.
+Run them with the same parameters as the ORBSLAM examples, i.e.:
+```
+python3 orbslam_mono_kitti.py [PATH_TO_ORBSLAM]/Vocabulary/ORBvoc.txt [PATH_TO_ORBSLAM]/Examples/Monocular/KITTI00-02.yaml [PATH_TO_KITTI]/sequences/00/
+```
+
 #### Alternative Python Versions
 
 At the moment, CMakeLists is hard-coded to use python 3.5. If you wish to use a different version, simply change the boost component used (python-35) to the desired version (say, python-27), on line 38 of CMakeLists.txt.
