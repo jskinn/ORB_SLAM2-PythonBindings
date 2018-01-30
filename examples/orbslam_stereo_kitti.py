@@ -98,5 +98,5 @@ def save_trajectory(trajectory, filename):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print('Usage: ./orbslam_mono_kitti path_to_vocabulary path_to_settings path_to_sequence')
+        print('Usage: ./orbslam_stereo_kitti path_to_vocabulary path_to_settings path_to_sequence')
     main(sys.argv[1], sys.argv[2], sys.argv[3])
