@@ -319,7 +319,11 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
 
     // Transform all keyframes so that the first keyframe is at the origin.
     // After a loop closure the first keyframe might not be at the origin.
-    cv::Mat Two = vpKFs[0]->GetPoseInverse();
+    // Of course, if we have no keyframes, then just use the identity matrix.
+    cv::Mat Two = cv::Mat::eye(4,4,CV_32F);
+    if (vpKFs.size() > 0) {
+        cv::Mat Two = vpKFs[0]->GetPoseInverse();
+    }
 
     boost::python::list trajectory;
 
@@ -337,34 +341,43 @@ boost::python::list ORBSlamPython::getTrajectoryPoints() const
 
         cv::Mat Trw = cv::Mat::eye(4,4,CV_32F);
 
-        while(pKF->isBad())
+        while(pKF != NULL && pKF->isBad())
         {
-          //  cout << "bad parent" << endl;
+            ORB_SLAM2::KeyFrame* pKFParent;
+
+            // std::cout << "bad parent" << std::endl;
             Trw = Trw*pKF->mTcp;
-            pKF = pKF->GetParent();
+            pKFParent = pKF->GetParent();
+            if (pKFParent == pKF) {
+                // We've found a frame that is it's own parent, presumably a root or something. Break out
+                break;
+            } else {
+                pKF = pKFParent;
+            }
         }
+        if (pKF != NULL && !pKF->isBad()) {
+            Trw = Trw*pKF->GetPose()*Two;
 
-        Trw = Trw*pKF->GetPose()*Two;
+            cv::Mat Tcw = (*lit)*Trw;
+            cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
+            cv::Mat twc = -Rwc*Tcw.rowRange(0,3).col(3);
 
-        cv::Mat Tcw = (*lit)*Trw;
-        cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
-        cv::Mat twc = -Rwc*Tcw.rowRange(0,3).col(3);
-
-        trajectory.append(boost::python::make_tuple(
-                              *lT,
-                              Rwc.at<float>(0,0),
-                              Rwc.at<float>(0,1),
-                              Rwc.at<float>(0,2),
-                              twc.at<float>(0),
-                              Rwc.at<float>(1,0),
-                              Rwc.at<float>(1,1),
-                              Rwc.at<float>(1,2),
-                              twc.at<float>(1),
-                              Rwc.at<float>(2,0),
-                              Rwc.at<float>(2,1),
-                              Rwc.at<float>(2,2),
-                              twc.at<float>(2)
-                          ));
+            trajectory.append(boost::python::make_tuple(
+                                *lT,
+                                Rwc.at<float>(0,0),
+                                Rwc.at<float>(0,1),
+                                Rwc.at<float>(0,2),
+                                twc.at<float>(0),
+                                Rwc.at<float>(1,0),
+                                Rwc.at<float>(1,1),
+                                Rwc.at<float>(1,2),
+                                twc.at<float>(1),
+                                Rwc.at<float>(2,0),
+                                Rwc.at<float>(2,1),
+                                Rwc.at<float>(2,2),
+                                twc.at<float>(2)
+                            ));
+        }
     }
 
     return trajectory;
