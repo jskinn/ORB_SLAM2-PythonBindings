@@ -28,7 +28,7 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-find_package(PythonLibs 3.6 REQUIRED)
+find_package(PythonLibs 3.6)
 find_package(NumPy)
 find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
 find_package(OpenCV REQUIRED)
