@@ -31,6 +31,7 @@ public:
     unsigned int getNumMatches() const;
     boost::python::list getKeyframePoints() const;
     boost::python::list getTrajectoryPoints() const;
+    boost::python::list getTrackedMappoints() const;
     bool saveSettings(boost::python::dict settings) const;
     boost::python::dict loadSettings() const;
     void setMode(ORB_SLAM2::System::eSensor mode);

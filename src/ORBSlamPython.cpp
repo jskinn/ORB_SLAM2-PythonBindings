@@ -4,6 +4,7 @@
 #include <ORB_SLAM2/KeyFrame.h>
 #include <ORB_SLAM2/Converter.h>
 #include <ORB_SLAM2/Tracking.h>
+#include <ORB_SLAM2/MapPoint.h>
 #include "ORBSlamPython.h"
 
 #if (PY_VERSION_HEX >= 0x03000000)
@@ -52,6 +53,7 @@ BOOST_PYTHON_MODULE(orbslam2)
         .def("set_use_viewer", &ORBSlamPython::setUseViewer)
         .def("get_keyframe_points", &ORBSlamPython::getKeyframePoints)
         .def("get_trajectory_points", &ORBSlamPython::getTrajectoryPoints)
+        .def("get_tracked_mappoints", &ORBSlamPython::getTrackedMappoints)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("get_num_features", &ORBSlamPython::getNumFeatures)
         .def("get_num_matched_features", &ORBSlamPython::getNumMatches)
@@ -304,6 +306,29 @@ boost::python::list ORBSlamPython::getKeyframePoints() const
     }
 
     return trajectory;
+}
+
+boost::python::list ORBSlamPython::getTrackedMappoints() const
+{
+    if (!system)
+    {
+        return boost::python::list();
+    }
+    
+    // This is copied from the ORB_SLAM2 System.SaveTrajectoryKITTI function, with some changes to output a python tuple.
+    vector<ORB_SLAM2::MapPoint*> Mps = system->GetTrackedMapPoints();
+    
+    boost::python::list map_points;
+    for(size_t i=0; i<Mps.size(); i++)    {
+        cv::Mat wp = Mps[i]->GetWorldPos();
+        map_points.append(boost::python::make_tuple(
+            wp.at<float>(0,0),
+            wp.at<float>(1,0),
+            wp.at<float>(2,0)                          
+            ));
+        }
+
+        return map_points;
 }
 
 boost::python::list ORBSlamPython::getTrajectoryPoints() const
