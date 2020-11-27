@@ -28,9 +28,9 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-find_package(PythonLibs 3.5 REQUIRED)
+find_package(PythonLibs 3.6 REQUIRED)
 find_package(NumPy)
-find_package(Boost 1.45.0 REQUIRED COMPONENTS python-py35)
+find_package(Boost 1.65.1 REQUIRED COMPONENTS python-py36)
 find_package(OpenCV REQUIRED)
 find_package(ORB_SLAM2 REQUIRED)
 find_package(Pangolin)
@@ -69,5 +69,5 @@ if (Pangolin_FOUND)
   target_link_libraries(${TARGET_MODULE_NAME} ${Pangolin_LIBRARIES})
 endif()
 
-install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.5/dist-packages)
+install(TARGETS ${TARGET_MODULE_NAME} DESTINATION lib/python3.6/dist-packages)
 
