@@ -3,6 +3,11 @@ A python wrapper for ORB_SLAM2, which can be found at [https://github.com/raulmu
 This is designed to work with the base version of ORB_SLAM2, with a couple of minimal API changes to access the system output.
 It has been tested on ubuntu 14.04 and 16.04 and built against Python3, although it does not rely on any python3 features.
 
+## Installation (Dockerfile)
+
+This dockfile sets up an environment for building and running ORBSLAM2 with Python 3.6 on Ubuntu 18.04.
+You can use from this link: [https://hub.docker.com/r/andsfonseca/orbslam2_python](https://hub.docker.com/r/andsfonseca/orbslam2_python)
+
 ## Installation
 
 ### Prerequesities
