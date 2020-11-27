@@ -15,7 +15,8 @@ static void init_ar() {
     Py_Initialize();
 
     import_array();
-    return NUMPY_IMPORT_ARRAY_RETVAL;
+    // return NUMPY_IMPORT_ARRAY_RETVAL;
+    return NULL;
 }
 
 BOOST_PYTHON_MODULE(orbslam2)
